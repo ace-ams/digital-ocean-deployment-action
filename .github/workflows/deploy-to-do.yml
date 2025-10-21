@@ -33,6 +33,7 @@ on:
 jobs:
   build-app:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       GREENSOCK_TOKEN: ${{ secrets.GREENSOCK_TOKEN }}
@@ -64,6 +65,7 @@ jobs:
   install-composer-dependencies:
     if: ${{ inputs.cms }}
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     steps:
       - uses: actions/checkout@v4
       - name: Cache Composer dependencies
@@ -89,6 +91,7 @@ jobs:
   build-cms:
     needs: install-composer-dependencies
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
@@ -110,6 +113,7 @@ jobs:
   build-cms-cli:
     needs: install-composer-dependencies
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-cli-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       VERSION: ${{ github.ref_name }}
@@ -132,6 +136,7 @@ jobs:
     needs: [build-app, build-cms, build-cms-cli]
     if: ${{ !failure() }}
     runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     steps:
       - uses: digitalocean/action-doctl@v2
         with:
