@@ -7,8 +7,6 @@ on:
         required: true
       DIGITALOCEAN_API_TOKEN:
         required: true
-      GREENSOCK_TOKEN:
-        required: true
     inputs:
       node-version:
         description: "The node version to install the node modules with"
@@ -36,11 +34,14 @@ jobs:
     environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     env:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
-      GREENSOCK_TOKEN: ${{ secrets.GREENSOCK_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+      
     steps:
       - uses: actions/checkout@v4
+      - uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
