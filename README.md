@@ -13,7 +13,7 @@ on:
 
 jobs:
   ext:
-    uses: born05/digital-ocean-deployment-action/.github/workflows/deploy-to-do.yml@main
+    uses: ace-ams/digital-ocean-deployment-action/.github/workflows/deploy-to-do.yml@main
     secrets: inherit
     with:
       node-version: 21.x
