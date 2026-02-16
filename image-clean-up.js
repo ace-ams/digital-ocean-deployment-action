@@ -3,12 +3,12 @@ const { exec } = require("child_process");
 // This includes only semver versioned tags
 const KEEP_VERSIONS_PER_IMAGE = 4;
 
-exec("doctl registry repository list-v2 -o json", (error, stdout, stderr) => {
+exec("doctl rs r list-v2 ace-ams -o json", (error, stdout, stderr) => {
   if (error || stderr) return console.error(error || stderr);
 
   JSON.parse(stdout).forEach((r) => {
     exec(
-      `doctl registry repository list-manifests ${r.name} -o json`,
+      `doctl rs r list-manifests ace-ams ${r.name} -o json`,
       (error, stdout, stderr) => {
         if (error || stderr) return console.error(error || stderr);
 
