@@ -15,4 +15,4 @@ jobs:
       - name: Clean unused images
         run: node image-clean-up.js
       - name: Clean up untagged manifests
-        run: doctl registry garbage-collection start --force --include-untagged-manifests
+        run: doctl rs garbage-collection start ace-ams --force --include-untagged-manifests
