@@ -3,12 +3,12 @@ const { exec } = require("child_process");
 // This includes only semver versioned tags
 const KEEP_VERSIONS_PER_IMAGE = 4;
 
-exec("doctl rs r list-v2 ace-ams -o json", (error, stdout, stderr) => {
+exec("doctl registries repository list-v2 ace-ams -o json", (error, stdout, stderr) => {
   if (error || stderr) return console.error(error || stderr);
 
   JSON.parse(stdout).forEach((r) => {
     exec(
-      `doctl rs r list-manifests ace-ams ${r.name} -o json`,
+      `doctl registries repository list-manifests ace-ams ${r.name} -o json`,
       (error, stdout, stderr) => {
         if (error || stderr) return console.error(error || stderr);
 
@@ -52,7 +52,7 @@ exec("doctl rs r list-v2 ace-ams -o json", (error, stdout, stderr) => {
           )
           .forEach((digest) => {
             exec(
-              `doctl registry repository delete-manifest ${r.name} ${digest} -f`,
+              `doctl registries repository delete-manifest ace-ams ${r.name} ${digest} -f`,
               (...out) => {
                 const messages = out.filter((m) => m);
                 if (messages.length) {
