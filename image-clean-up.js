@@ -3,7 +3,7 @@ const { exec } = require("child_process");
 // This includes only semver versioned tags
 const KEEP_VERSIONS_PER_IMAGE = 4;
 
-const registry = "born05";
+const registry = "ace-ams";
 
 exec(`doctl registries repository list-v2 ${registry} -o json`, (error, stdout, stderr) => {
   if (error || stderr) return console.error(error || stderr);
