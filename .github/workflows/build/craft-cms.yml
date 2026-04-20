@@ -1,0 +1,85 @@
+name: Build Craft CMS Docker Images
+
+on:
+  workflow_call:
+    secrets:
+      GH_PAT_REPOS_PACKAGES_PROJECTS:
+        required: true
+      DIGITALOCEAN_API_TOKEN:
+        required: true
+    inputs:
+      root-dir:
+        description: 'The directory where the CMS is located (default: ./cms)'
+        type: string
+        required: false
+        default: './cms'
+
+jobs:
+  install-composer-dependencies:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: /tmp/composer-cache
+          key: composer-${{ hashFiles('**/composer.lock') }}
+      - name: Install Composer dependencies
+        uses: php-actions/composer@v6
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}"} }'
+        with:
+          dev: no
+          progress: yes
+          working_dir: ${{ inputs.root-dir || './cms' }}
+          args: --ignore-platform-reqs --prefer-dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vendor
+          path: ${{ inputs.root-dir || './cms' }}/vendor
+          retention-days: 1
+
+  build:
+    needs: install-composer-dependencies
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
+    env:
+      IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: login to digitalocean registry
+        shell: bash
+        run: doctl registry login
+      - uses: actions/download-artifact@v4
+        with:
+          name: vendor
+          path: ${{ inputs.root-dir || './cms' }}/vendor
+      - run: docker build -t $IMAGE ${{ inputs.root-dir || './cms' }}
+      - run: docker push $IMAGE
+
+  build-cli:
+    needs: install-composer-dependencies
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
+    env:
+      IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-cli-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      VERSION: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: login to digitalocean registry
+        shell: bash
+        run: doctl registry login
+      - uses: actions/download-artifact@v4
+        with:
+          name: vendor
+          path: ${{ inputs.root-dir || './cms' }}/vendor
+      - run: docker build -f ${{ inputs.root-dir || './cms' }}/cli.Dockerfile -t $IMAGE ${{ inputs.root-dir || './cms' }}
+      - run: docker push $IMAGE

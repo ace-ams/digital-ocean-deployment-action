@@ -1,0 +1,55 @@
+name: Deploy to DigitalOcean
+
+on:
+  workflow_call:
+    secrets:
+      GH_PAT_REPOS_PACKAGES_PROJECTS:
+        required: true
+      DIGITALOCEAN_API_TOKEN:
+        required: true
+    inputs:
+      node-version:
+        description: "The node version to install the node modules with"
+        type: string
+        required: false
+        default: 24.x
+      root-dir:
+        description: 'The directory where the app is located (default: ./app)'
+        type: string
+        required: false
+        default: './app'
+
+jobs:
+  build-app:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
+    env:
+      IMAGE: registry.digitalocean.com/${{ github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      GITHUB_TOKEN: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
+      VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
+      
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oNaiPs/secrets-to-env-action@v1
+        with:
+          secrets: ${{ toJSON(secrets) }}
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: login to digitalocean registry
+        shell: bash
+        run: doctl registry login
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version || '24.x' }}
+          cache: "npm"
+          cache-dependency-path: "${{ inputs.root-dir || './app' }}/package-lock.json"
+      - run: |
+          cd ${{ inputs.root-dir || './app' }}
+          npm ci --include=dev
+          npm run build
+          npm prune --omit=dev
+          cd ..
+      - run: |
+          docker build -t $IMAGE ${{ inputs.root-dir || './app' }}
+          docker push $IMAGE
