@@ -1,7 +1,10 @@
 name: Deploy to DigitalOcean
 
 on:
-  - workflow_call
+  workflow_call:
+    secrets:
+      DIGITALOCEAN_API_TOKEN:
+        required: true
 
 jobs:
   deploy:
