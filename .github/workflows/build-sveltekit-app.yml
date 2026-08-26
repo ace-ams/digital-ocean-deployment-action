@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     env:
-      IMAGE: registry.digitalocean.com/${{ inputs.app-name || github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+      IMAGE: registry.digitalocean.com/${{ inputs.app-name && format('{0}/{1}', github.repository_owner, inputs.app-name) || github.repository }}:app-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       GITHUB_TOKEN: ${{ secrets.GH_PAT_REPOS_PACKAGES_PROJECTS }}
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
       
