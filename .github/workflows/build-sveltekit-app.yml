@@ -33,7 +33,7 @@ jobs:
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
       
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oNaiPs/secrets-to-env-action@v1
         with:
           secrets: ${{ toJSON(secrets) }}
@@ -43,7 +43,7 @@ jobs:
       - name: login to digitalocean registry
         shell: bash
         run: doctl registry login
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node-version || '24.x' }}
           cache: "npm"

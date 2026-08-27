@@ -38,7 +38,7 @@ jobs:
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
       
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oNaiPs/secrets-to-env-action@v1
         with:
           secrets: ${{ toJSON(secrets) }}
@@ -48,7 +48,7 @@ jobs:
       - name: login to digitalocean registry
         shell: bash
         run: doctl registry login
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ inputs.node-version || '21.x' }}
           cache: "npm"
@@ -68,9 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Cache Composer dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /tmp/composer-cache
           key: composer-${{ hashFiles('**/composer.lock') }}
@@ -83,7 +83,7 @@ jobs:
           progress: yes
           working_dir: "cms"
           args: --ignore-platform-reqs --prefer-dist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: vendor
           path: ${{ inputs.cms-dir || './cms' }}/vendor
@@ -97,14 +97,14 @@ jobs:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       VERSION: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
       - name: login to digitalocean registry
         shell: bash
         run: doctl registry login
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: vendor
           path: ${{ inputs.cms-dir || './cms' }}/vendor
@@ -119,14 +119,14 @@ jobs:
       IMAGE: registry.digitalocean.com/${{ github.repository }}:cms-cli-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
       VERSION: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
       - name: login to digitalocean registry
         shell: bash
         run: doctl registry login
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: vendor
           path: ${{ inputs.cms-dir || './cms' }}/vendor
