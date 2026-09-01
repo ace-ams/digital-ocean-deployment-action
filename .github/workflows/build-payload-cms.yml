@@ -1,0 +1,41 @@
+name: Build Payload CMS Docker image
+
+on:
+  workflow_call:
+    secrets:
+      DIGITALOCEAN_API_TOKEN:
+        required: true
+    inputs:
+      app-name:
+        description: 'The DigitalOcean registry repository name. Defaults to the calling repository name.'
+        type: string
+        required: false
+      root-dir:
+        description: 'The Payload CMS directory containing its Dockerfile.'
+        type: string
+        required: false
+        default: './cms'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_type == 'tag' && 'production' || 'acceptance' }}
+    env:
+      IMAGE: registry.digitalocean.com/${{ inputs.app-name && format('{0}/{1}', github.repository_owner, inputs.app-name) || github.repository }}:cms-${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+      - name: Log in to DigitalOcean Container Registry
+        shell: bash
+        run: doctl registry login
+      - name: Build image
+        shell: bash
+        run: docker build --tag "$IMAGE" "${{ inputs.root-dir }}"
+      - name: Push image
+        shell: bash
+        run: docker push "$IMAGE"
