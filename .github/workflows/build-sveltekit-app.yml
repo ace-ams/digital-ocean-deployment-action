@@ -4,7 +4,7 @@ on:
   workflow_call:
     secrets:
       GH_PAT_REPOS_PACKAGES_PROJECTS:
-        required: true
+        required: false
       DIGITALOCEAN_API_TOKEN:
         required: true
     inputs:
