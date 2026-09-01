@@ -57,3 +57,4 @@ jobs:
       - run: |
           docker build -t $IMAGE ${{ inputs.root-dir || './app' }}
           docker push $IMAGE
+          docker push $IMAGE
